@@ -1,15 +1,20 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Authenticated, Unauthenticated } from "convex/react";
+import { Authenticated, Unauthenticated, useAction } from "convex/react";
 import { SignInButton, UserButton } from "@clerk/clerk-react";
 import { StickyHeader } from "@/components/layout/sticky-header";
 import { Textarea } from "@/components/ui/textarea";
 import React from "react";
-import { SplitDetails, calculateSplit } from "@/lib/splitHelpers";
+import {
+  SplitDetails,
+  calculateSplit,
+  convertJsonIntoSplitDetails,
+} from "@/lib/splitHelpers";
 import { Input } from "@/components/ui/input";
 import { Trash } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { api } from "@/convex/_generated/api";
 
 export default function Home() {
   return (
@@ -72,7 +77,12 @@ function SplitContainer() {
       />
     );
 
-  return <SplitDetailsDisplay initialSplitDetails={initialSplitDetails} />;
+  return (
+    <SplitDetailsDisplay
+      initialInput={initialInput}
+      initialSplitDetails={initialSplitDetails}
+    />
+  );
 }
 
 function InitialEntry({
@@ -84,6 +94,9 @@ function InitialEntry({
   onInitialInputChange: (initialInput: string) => void;
   setSplitDetails: (splitDetails: SplitDetails) => void;
 }) {
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const processInputInfo = useAction(api.myActions.processInputInfo);
+
   return (
     <div className="flex flex-col gap-2">
       <Textarea
@@ -93,17 +106,14 @@ function InitialEntry({
       />
       <div className="flex flex-row justify-end">
         <Button
+          disabled={loading}
           onClick={() => {
-            setSplitDetails({
-              names: ["eric", "kelsey"],
-              items: [
-                {
-                  cost: 10,
-                  itemName: "pizza",
-                  names: ["eric", "kelsey"],
-                },
-              ],
-            });
+            setLoading(true);
+            processInputInfo({ input: initialInput })
+              .then((res) => {
+                setSplitDetails(convertJsonIntoSplitDetails(res));
+              })
+              .catch(console.error);
           }}
         >
           Process!
@@ -114,8 +124,10 @@ function InitialEntry({
 }
 
 function SplitDetailsDisplay({
+  initialInput,
   initialSplitDetails,
 }: {
+  initialInput: string;
   initialSplitDetails: SplitDetails;
 }) {
   const [splitDetails, setSplitDetails] =
@@ -160,6 +172,9 @@ function SplitDetailsDisplay({
 
   return (
     <div className="flex flex-col gap-2">
+      <p>Initial input</p>
+      <p>{initialInput}</p>
+
       <p>Total</p>
       <Input
         value={splitDetails.total}

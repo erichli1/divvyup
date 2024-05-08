@@ -1,7 +1,15 @@
-import { defineSchema } from "convex/server";
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
 
 export default defineSchema(
-  {},
+  {
+    llmLogs: defineTable({
+      model: v.string(),
+      input: v.string(),
+      output: v.string(),
+      latency: v.number(),
+    }),
+  },
   // If you ever get an error about schema mismatch
   // between your data and your schema, and you cannot
   // change the schema to match the current data in your database,
