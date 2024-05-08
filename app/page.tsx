@@ -7,21 +7,24 @@ import React from "react";
 import {
   EMPTY_SPLIT_DETAILS,
   SplitDetails,
+  SplitDetailsWithIds,
   calculateSplit,
   convertJsonIntoSplitDetails,
 } from "@/lib/splitHelpers";
 import { Input } from "@/components/ui/input";
 import {
+  FilePlus2,
   Loader2,
-  Plus,
   TextCursorInput,
   Trash,
+  UserRoundPlus,
   WandSparkles,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { api } from "@/convex/_generated/api";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Home() {
   return (
@@ -179,8 +182,19 @@ function SplitDetailsDisplay({
   initialSplitDetails: SplitDetails;
   initialSplitNotes: string | null;
 }) {
-  const [splitDetails, setSplitDetails] =
-    React.useState<SplitDetails>(initialSplitDetails);
+  const processedInitialSplitDetails = {
+    ...initialSplitDetails,
+    items: initialSplitDetails.items.map((item) => ({
+      ...item,
+      itemName: item.itemName ?? "",
+      cost: item.cost ?? 0,
+      id: uuidv4(),
+    })),
+  };
+
+  const [splitDetails, setSplitDetails] = React.useState<SplitDetailsWithIds>(
+    processedInitialSplitDetails
+  );
 
   const addName = () => {
     setSplitDetails((old) => ({
@@ -217,19 +231,22 @@ function SplitDetailsDisplay({
       items: [
         ...old.items,
         {
+          id: uuidv4(),
+          cost: 0,
+          itemName: "",
           names: [],
         },
       ],
     }));
   };
 
-  const editInclusionOnItem = (itemIndex: number, name: string) => {
+  const editInclusionOnItem = (itemId: string, name: string) => {
     setSplitDetails((old) => ({
       ...old,
-      items: old.items.map((item, index) => ({
+      items: old.items.map((item) => ({
         ...item,
         names:
-          index === itemIndex
+          item.id === itemId
             ? item.names.includes(name)
               ? item.names.filter((n) => n !== name)
               : [...item.names, name]
@@ -238,30 +255,41 @@ function SplitDetailsDisplay({
     }));
   };
 
-  const editItemName = (itemIndex: number, newItemName: string) => {
+  const editItemName = (itemId: string, newItemName: string) => {
     setSplitDetails((old) => ({
       ...old,
-      items: old.items.map((item, index) => ({
+      items: old.items.map((item) => ({
         ...item,
-        itemName: index === itemIndex ? newItemName : item.itemName,
+        itemName: item.id === itemId ? newItemName : item.itemName,
       })),
     }));
   };
 
-  const editItemCost = (itemIndex: number, newItemCost: number) => {
+  const editItemCost = (itemId: string, newItemCost: number) => {
     setSplitDetails((old) => ({
       ...old,
-      items: old.items.map((item, index) => ({
+      items: old.items.map((item) => ({
         ...item,
-        cost: index === itemIndex ? newItemCost : item.cost,
+        cost: item.id === itemId ? newItemCost : item.cost,
       })),
+    }));
+  };
+
+  const deleteItem = (itemId: string) => {
+    setSplitDetails((old) => ({
+      ...old,
+      items: old.items.filter((item) => item.id !== itemId),
     }));
   };
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="font-bold">Initial input</p>
-      <p>{initialInput}</p>
+      {initialInput !== "" && (
+        <>
+          <p className="font-bold">Initial input</p>
+          <p>{initialInput}</p>
+        </>
+      )}
 
       {initialSplitNotes !== null && <p>Note: {initialSplitNotes}</p>}
 
@@ -285,7 +313,7 @@ function SplitDetailsDisplay({
       <p className="font-bold">People</p>
       <div className="flex flex-row">
         <Button onClick={() => addName()}>
-          <Plus className="h-4 w-4" />
+          <UserRoundPlus className="h-4 w-4" />
         </Button>
         <div className="ml-2 flex-grow grid grid-cols-2 gap-2">
           {splitDetails.names.map((name, index) => (
@@ -312,20 +340,24 @@ function SplitDetailsDisplay({
       <br />
 
       <p className="font-bold">Items</p>
-      {splitDetails.items.map((item, itemIndex) => (
-        <div key={`item-${itemIndex}`} className="grid grid-cols-12 gap-2">
-          <Button size="icon" variant="ghost">
+      {splitDetails.items.map((item) => (
+        <div key={`item-${item.id}`} className="grid grid-cols-12 gap-2">
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => deleteItem(item.id)}
+          >
             <Trash className="h-4 w-4" />
           </Button>
           <Input
             value={item.itemName}
-            onChange={(event) => editItemName(itemIndex, event.target.value)}
+            onChange={(event) => editItemName(item.id, event.target.value)}
             className="col-span-3"
           />
           <Input
             value={item.cost}
             onChange={(event) =>
-              editItemCost(itemIndex, parseFloat(event.target.value))
+              editItemCost(item.id, parseFloat(event.target.value))
             }
             className="col-span-3"
             type="number"
@@ -333,12 +365,12 @@ function SplitDetailsDisplay({
           <div className="col-span-5 flex flex-col gap-1">
             {splitDetails.names.map((name, nameIndex) => (
               <div
-                key={`item-${itemIndex}-name-${nameIndex}`}
+                key={`item-${item.id}-name-${nameIndex}`}
                 className="flex items-center space-x-2"
               >
                 <Checkbox
                   checked={item.names.includes(name)}
-                  onClick={() => editInclusionOnItem(itemIndex, name)}
+                  onClick={() => editInclusionOnItem(item.id, name)}
                 />
                 <label className="text-sm font-medium leading-none">
                   {name}
@@ -353,7 +385,7 @@ function SplitDetailsDisplay({
       ))}
       <div>
         <Button onClick={() => addItem()}>
-          <Plus className="h-4 w-4 mr-2" />
+          <FilePlus2 className="h-4 w-4 mr-2" />
           Add item
         </Button>
       </div>
@@ -368,7 +400,8 @@ function SplitDetailsDisplay({
 function CalculatedSplit({ splitDetails }: { splitDetails: SplitDetails }) {
   const calculatedSplit = calculateSplit(splitDetails);
 
-  if (calculatedSplit.error) return <p>{calculatedSplit.error}</p>;
+  if (calculatedSplit.error)
+    return <p className="font-bold">{calculatedSplit.error}</p>;
 
   return (
     <>

@@ -4,6 +4,12 @@ export type SplitDetails = {
   items: Array<Item>;
 };
 
+export type SplitDetailsWithIds = {
+  total?: number;
+  names: Array<string>;
+  items: Array<Item & { id: string }>;
+};
+
 export type Item = {
   cost?: number;
   itemName?: string;
