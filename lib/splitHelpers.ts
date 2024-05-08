@@ -10,8 +10,15 @@ export type Item = {
   names: Array<string>;
 };
 
+export const EMPTY_SPLIT_DETAILS: SplitDetails = {
+  names: [],
+  items: [],
+};
+
 // TODO: remove any names in subarrays that aren't in the main names array
 export function convertJsonIntoSplitDetails(input: string): SplitDetails {
+  if (input === "") return EMPTY_SPLIT_DETAILS;
+
   const json: { [key: string]: any } = JSON.parse(input);
 
   const total = json["total"];

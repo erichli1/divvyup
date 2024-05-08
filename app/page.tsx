@@ -7,6 +7,7 @@ import { StickyHeader } from "@/components/layout/sticky-header";
 import { Textarea } from "@/components/ui/textarea";
 import React from "react";
 import {
+  EMPTY_SPLIT_DETAILS,
   SplitDetails,
   calculateSplit,
   convertJsonIntoSplitDetails,
@@ -15,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Trash } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { api } from "@/convex/_generated/api";
+import { Separator } from "@/components/ui/separator";
 
 export default function Home() {
   return (
@@ -116,11 +118,7 @@ function InitialEntry({
                   setSplitDetails(convertJsonIntoSplitDetails(res));
                 })
                 .catch(console.error);
-            else
-              setSplitDetails({
-                names: [],
-                items: [],
-              });
+            else setSplitDetails(EMPTY_SPLIT_DETAILS);
           }}
         >
           {initialInput === "" ? "Manual input" : "Process inputs"}
@@ -177,6 +175,26 @@ function SplitDetailsDisplay({
     }));
   };
 
+  const editItemName = (itemIndex: number, newItemName: string) => {
+    setSplitDetails((old) => ({
+      ...old,
+      items: old.items.map((item, index) => ({
+        ...item,
+        itemName: index === itemIndex ? newItemName : item.itemName,
+      })),
+    }));
+  };
+
+  const editItemCost = (itemIndex: number, newItemCost: number) => {
+    setSplitDetails((old) => ({
+      ...old,
+      items: old.items.map((item, index) => ({
+        ...item,
+        cost: index === itemIndex ? newItemCost : item.cost,
+      })),
+    }));
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <p>Initial input</p>
@@ -218,8 +236,18 @@ function SplitDetailsDisplay({
       <p>Items</p>
       {splitDetails.items.map((item, itemIndex) => (
         <div key={`item-${itemIndex}`} className="grid grid-cols-12 gap-2">
-          <Input value={item.itemName} className="col-span-3" />
-          <Input value={item.cost} className="col-span-3" />
+          <Input
+            value={item.itemName}
+            onChange={(event) => editItemName(itemIndex, event.target.value)}
+            className="col-span-3"
+          />
+          <Input
+            value={item.cost}
+            onChange={(event) =>
+              editItemCost(itemIndex, parseFloat(event.target.value))
+            }
+            className="col-span-3"
+          />
           <div className="col-span-6 flex flex-col gap-1">
             {splitDetails.names.map((name, nameIndex) => (
               <div
@@ -235,6 +263,9 @@ function SplitDetailsDisplay({
                 </label>
               </div>
             ))}
+          </div>
+          <div className="col-span-12">
+            <Separator />
           </div>
         </div>
       ))}
