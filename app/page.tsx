@@ -11,10 +11,17 @@ import {
   convertJsonIntoSplitDetails,
 } from "@/lib/splitHelpers";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  TextCursorInput,
+  Trash,
+  WandSparkles,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { api } from "@/convex/_generated/api";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   return (
@@ -104,6 +111,8 @@ function InitialEntry({
   const [loading, setLoading] = React.useState<boolean>(false);
   const processInputInfo = useAction(api.myActions.processInputInfo);
 
+  const status = loading ? "loading" : initialInput === "" ? "empty" : "typed";
+
   return (
     <div className="flex flex-col gap-2">
       <Textarea
@@ -129,12 +138,32 @@ function InitialEntry({
                 .catch(console.error);
             else setSplitDetails(EMPTY_SPLIT_DETAILS);
           }}
+          className={cn(
+            status === "typed"
+              ? "bg-gradient-to-r from-blue-500 via-blue-500 to-indigo-500"
+              : ""
+          )}
         >
-          {loading
-            ? "Loading..."
-            : initialInput === ""
-            ? "Manual input"
-            : "Process inputs"}
+          {status === "loading" && (
+            <>
+              <div className="animate-spin mr-2">
+                <Loader2 className="h-4 w-4" />
+              </div>
+              Loading...
+            </>
+          )}
+          {status === "empty" && (
+            <>
+              <TextCursorInput className="h-4 w-4 mr-2" />
+              Manual input
+            </>
+          )}
+          {status === "typed" && (
+            <>
+              <WandSparkles className="h-4 w-4 mr-2" />
+              Process!
+            </>
+          )}
         </Button>
       </div>
     </div>
