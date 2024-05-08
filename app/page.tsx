@@ -297,9 +297,8 @@ function SplitDetailsDisplay({
 
       <p className="font-bold">Total</p>
       <Input
-        value={splitDetails.total}
+        value={splitDetails.total ?? ""}
         onChange={(event) => {
-          console.log(event.target.value);
           setSplitDetails((old) => ({
             ...old,
             total: parseFloat(event.target.value),
