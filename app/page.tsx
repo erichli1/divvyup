@@ -103,6 +103,7 @@ function InitialEntry({
         value={initialInput}
         onChange={(event) => onInitialInputChange(event.target.value)}
         placeholder="Start talking or typing into here to begin!"
+        disabled={loading}
       />
       <div className="flex flex-row justify-end">
         <Button
@@ -119,7 +120,11 @@ function InitialEntry({
             else setSplitDetails(EMPTY_SPLIT_DETAILS);
           }}
         >
-          {initialInput === "" ? "Manual input" : "Process inputs"}
+          {loading
+            ? "Loading..."
+            : initialInput === ""
+            ? "Manual input"
+            : "Process inputs"}
         </Button>
       </div>
     </div>
