@@ -13,7 +13,7 @@ import {
   convertJsonIntoSplitDetails,
 } from "@/lib/splitHelpers";
 import { Input } from "@/components/ui/input";
-import { Trash } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { api } from "@/convex/_generated/api";
 import { Separator } from "@/components/ui/separator";
@@ -138,6 +138,13 @@ function SplitDetailsDisplay({
   const [splitDetails, setSplitDetails] =
     React.useState<SplitDetails>(initialSplitDetails);
 
+  const addName = () => {
+    setSplitDetails((old) => ({
+      ...old,
+      names: [...old.names, ""],
+    }));
+  };
+
   const deleteName = (name: string) => {
     setSplitDetails((old) => ({
       ...old,
@@ -157,6 +164,18 @@ function SplitDetailsDisplay({
         ...item,
         names: item.names.map((name) => (name === oldName ? newName : name)),
       })),
+    }));
+  };
+
+  const addItem = () => {
+    setSplitDetails((old) => ({
+      ...old,
+      items: [
+        ...old.items,
+        {
+          names: [],
+        },
+      ],
     }));
   };
 
@@ -212,30 +231,38 @@ function SplitDetailsDisplay({
       />
 
       <p>People</p>
-      <div className="flex flex-row gap-2">
-        {splitDetails.names.map((name, index) => (
-          <div
-            key={`name-${index}`}
-            className="flex flex-row gap-1 items-center"
-          >
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => deleteName(name)}
+      <div className="flex flex-row">
+        <Button onClick={() => addName()}>
+          <Plus className="h-4 w-4" />
+        </Button>
+        <div className="ml-2 flex-grow grid grid-cols-2 gap-2">
+          {splitDetails.names.map((name, index) => (
+            <div
+              key={`name-${index}`}
+              className="flex flex-row gap-1 items-center"
             >
-              <Trash className="h-4 w-4" />
-            </Button>
-            <Input
-              value={name}
-              onChange={(event) => editName(event.target.value, name)}
-            />
-          </div>
-        ))}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => deleteName(name)}
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+              <Input
+                value={name}
+                onChange={(event) => editName(event.target.value, name)}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       <p>Items</p>
       {splitDetails.items.map((item, itemIndex) => (
         <div key={`item-${itemIndex}`} className="grid grid-cols-12 gap-2">
+          <Button size="icon" variant="ghost">
+            <Trash className="h-4 w-4" />
+          </Button>
           <Input
             value={item.itemName}
             onChange={(event) => editItemName(itemIndex, event.target.value)}
@@ -246,7 +273,7 @@ function SplitDetailsDisplay({
             onChange={(event) =>
               editItemCost(itemIndex, parseFloat(event.target.value))
             }
-            className="col-span-3"
+            className="col-span-2"
           />
           <div className="col-span-6 flex flex-col gap-1">
             {splitDetails.names.map((name, nameIndex) => (
@@ -269,6 +296,12 @@ function SplitDetailsDisplay({
           </div>
         </div>
       ))}
+      <div>
+        <Button onClick={() => addItem()}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add item
+        </Button>
+      </div>
 
       <p>Split</p>
       <CalculatedSplit splitDetails={splitDetails} />
