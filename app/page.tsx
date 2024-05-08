@@ -2,8 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Authenticated, Unauthenticated, useAction } from "convex/react";
-import { SignInButton, UserButton } from "@clerk/clerk-react";
-import { StickyHeader } from "@/components/layout/sticky-header";
 import { Textarea } from "@/components/ui/textarea";
 import React from "react";
 import {
@@ -21,13 +19,13 @@ import { Separator } from "@/components/ui/separator";
 export default function Home() {
   return (
     <>
-      <StickyHeader className="px-4 py-2">
+      {/* <StickyHeader className="px-4 py-2">
         <div className="flex justify-between items-center">
           billsplit (v3)
           <SignInButtonContainer />
         </div>
-      </StickyHeader>
-      <main className="container max-w-2xl flex flex-col gap-8">
+      </StickyHeader> */}
+      <main className="mx-auto p-2 max-w-2xl flex flex-col gap-8">
         <h1 className="text-4xl font-extrabold my-8 text-center">
           billsplit (v3)
         </h1>
@@ -42,20 +40,20 @@ export default function Home() {
   );
 }
 
-function SignInButtonContainer() {
-  return (
-    <div className="flex gap-4">
-      <Authenticated>
-        <UserButton afterSignOutUrl="#" />
-      </Authenticated>
-      <Unauthenticated>
-        <SignInButton mode="modal">
-          <Button variant="ghost">Sign in</Button>
-        </SignInButton>
-      </Unauthenticated>
-    </div>
-  );
-}
+// function SignInButtonContainer() {
+//   return (
+//     <div className="flex gap-4">
+//       <Authenticated>
+//         <UserButton afterSignOutUrl="#" />
+//       </Authenticated>
+//       <Unauthenticated>
+//         <SignInButton mode="modal">
+//           <Button variant="ghost">Sign in</Button>
+//         </SignInButton>
+//       </Unauthenticated>
+//     </div>
+//   );
+// }
 
 function SignedInContent() {
   return (
@@ -141,7 +139,7 @@ function SplitDetailsDisplay({
   const addName = () => {
     setSplitDetails((old) => ({
       ...old,
-      names: [...old.names, ""],
+      names: [...old.names, `person-${old.names.length + 1}`],
     }));
   };
 
@@ -216,21 +214,27 @@ function SplitDetailsDisplay({
 
   return (
     <div className="flex flex-col gap-2">
-      <p>Initial input</p>
+      <p className="font-bold">Initial input</p>
       <p>{initialInput}</p>
 
-      <p>Total</p>
+      <br />
+
+      <p className="font-bold">Total</p>
       <Input
         value={splitDetails.total}
-        onChange={(event) =>
+        onChange={(event) => {
+          console.log(event.target.value);
           setSplitDetails((old) => ({
             ...old,
-            total: parseInt(event.target.value),
-          }))
-        }
+            total: parseFloat(event.target.value),
+          }));
+        }}
+        type="number"
       />
 
-      <p>People</p>
+      <br />
+
+      <p className="font-bold">People</p>
       <div className="flex flex-row">
         <Button onClick={() => addName()}>
           <Plus className="h-4 w-4" />
@@ -257,7 +261,9 @@ function SplitDetailsDisplay({
         </div>
       </div>
 
-      <p>Items</p>
+      <br />
+
+      <p className="font-bold">Items</p>
       {splitDetails.items.map((item, itemIndex) => (
         <div key={`item-${itemIndex}`} className="grid grid-cols-12 gap-2">
           <Button size="icon" variant="ghost">
@@ -273,9 +279,10 @@ function SplitDetailsDisplay({
             onChange={(event) =>
               editItemCost(itemIndex, parseFloat(event.target.value))
             }
-            className="col-span-2"
+            className="col-span-3"
+            type="number"
           />
-          <div className="col-span-6 flex flex-col gap-1">
+          <div className="col-span-5 flex flex-col gap-1">
             {splitDetails.names.map((name, nameIndex) => (
               <div
                 key={`item-${itemIndex}-name-${nameIndex}`}
@@ -303,7 +310,8 @@ function SplitDetailsDisplay({
         </Button>
       </div>
 
-      <p>Split</p>
+      <br />
+
       <CalculatedSplit splitDetails={splitDetails} />
     </div>
   );
@@ -312,13 +320,29 @@ function SplitDetailsDisplay({
 function CalculatedSplit({ splitDetails }: { splitDetails: SplitDetails }) {
   const calculatedSplit = calculateSplit(splitDetails);
 
+  if (calculatedSplit.error) return <p>{calculatedSplit.error}</p>;
+
   return (
-    <div>
-      {Object.entries(calculatedSplit).map(([name, cost]) => (
-        <p key={`split-${name}`}>
-          {name}: {cost}
-        </p>
-      ))}
-    </div>
+    <>
+      <p className="font-bold">Split</p>
+      <div>
+        {calculatedSplit.output &&
+          Object.entries(calculatedSplit.output).map(([name, cost]) => (
+            <p key={`split-${name}`}>
+              {name}: {cost}
+            </p>
+          ))}
+      </div>
+
+      {calculatedSplit.outputStats && (
+        <>
+          <p className="font-bold">Checks</p>
+          <div>
+            <p>Subtotal: {calculatedSplit.outputStats.subtotal}</p>
+            <p>Sum: {calculatedSplit.outputStats.sum}</p>
+          </div>
+        </>
+      )}
+    </>
   );
 }

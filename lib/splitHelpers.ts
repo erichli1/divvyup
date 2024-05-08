@@ -46,7 +46,14 @@ export function convertJsonIntoSplitDetails(input: string): SplitDetails {
 }
 
 // Returns dictionary of each person's bill, split by proportion of subtotal paid
-export function calculateSplit(splitDetails: SplitDetails) {
+export function calculateSplit(splitDetails: SplitDetails): {
+  error?: string;
+  output?: { [key: string]: number };
+  outputStats?: {
+    sum: number;
+    subtotal: number;
+  };
+} {
   let errorMessage = "";
 
   const total = splitDetails.total;
@@ -69,11 +76,10 @@ export function calculateSplit(splitDetails: SplitDetails) {
     return acc + item.cost;
   }, 0);
 
-  if (errorMessage !== "") {
+  if (errorMessage !== "")
     return {
       error: errorMessage,
     };
-  }
 
   const subtotalsPerPerson = names.reduce((acc, name) => {
     acc[name] = 0;
@@ -84,6 +90,9 @@ export function calculateSplit(splitDetails: SplitDetails) {
     // Should never fallback to 0 because we already throw error earlier
     const itemCost = item.cost ?? 0;
 
+    if (itemCost > 0 && item.names.length == 0)
+      errorMessage = "At least one item has a cost not assigned to somebody";
+
     const perPersonUnitCost = itemCost / item.names.length;
 
     item.names.forEach((name) => {
@@ -91,10 +100,26 @@ export function calculateSplit(splitDetails: SplitDetails) {
     });
   });
 
+  if (errorMessage !== "")
+    return {
+      error: errorMessage,
+    };
+
   const split = names.reduce((acc, name) => {
     acc[name] = (subtotalsPerPerson[name] / subtotal) * total;
     return acc;
   }, {} as { [key: string]: number });
 
-  return split;
+  const sum = Object.entries(split).reduce(
+    (acc, [_key, value]) => acc + value,
+    0
+  );
+
+  return {
+    output: split,
+    outputStats: {
+      sum,
+      subtotal,
+    },
+  };
 }
