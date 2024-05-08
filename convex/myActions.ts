@@ -21,6 +21,7 @@ export const processInputInfo = action({
         { role: "system", content: LLM_PROMPT },
         { role: "user", content: input },
       ],
+      response_format: { type: "json_object" },
     });
     const end = Date.now();
 
@@ -33,6 +34,6 @@ export const processInputInfo = action({
       model: "gpt-4-turbo",
     });
 
-    return messageContent === "unclear" ? "" : messageContent;
+    return messageContent;
   },
 });

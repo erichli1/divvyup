@@ -67,6 +67,9 @@ function SplitContainer() {
   const [initialInput, setInitialInput] = React.useState<string>("");
   const [initialSplitDetails, setInitialSplitDetails] =
     React.useState<SplitDetails | null>(null);
+  const [initialSplitNotes, setInitialSplitNotes] = React.useState<
+    string | null
+  >(null);
 
   if (initialSplitDetails === null)
     return (
@@ -74,6 +77,7 @@ function SplitContainer() {
         initialInput={initialInput}
         onInitialInputChange={(initialInput) => setInitialInput(initialInput)}
         setSplitDetails={(splitDetails) => setInitialSplitDetails(splitDetails)}
+        setInitialSplitNotes={(notes) => setInitialSplitNotes(notes)}
       />
     );
 
@@ -81,6 +85,7 @@ function SplitContainer() {
     <SplitDetailsDisplay
       initialInput={initialInput}
       initialSplitDetails={initialSplitDetails}
+      initialSplitNotes={initialSplitNotes}
     />
   );
 }
@@ -89,10 +94,12 @@ function InitialEntry({
   initialInput,
   onInitialInputChange,
   setSplitDetails,
+  setInitialSplitNotes,
 }: {
   initialInput: string;
   onInitialInputChange: (initialInput: string) => void;
   setSplitDetails: (splitDetails: SplitDetails) => void;
+  setInitialSplitNotes: (notes: string) => void;
 }) {
   const [loading, setLoading] = React.useState<boolean>(false);
   const processInputInfo = useAction(api.myActions.processInputInfo);
@@ -114,7 +121,10 @@ function InitialEntry({
             if (initialInput !== "")
               processInputInfo({ input: initialInput })
                 .then((res) => {
-                  setSplitDetails(convertJsonIntoSplitDetails(res));
+                  const result = convertJsonIntoSplitDetails(res);
+                  if (result.note) setInitialSplitNotes(result.note);
+
+                  setSplitDetails(result.output);
                 })
                 .catch(console.error);
             else setSplitDetails(EMPTY_SPLIT_DETAILS);
@@ -134,9 +144,11 @@ function InitialEntry({
 function SplitDetailsDisplay({
   initialInput,
   initialSplitDetails,
+  initialSplitNotes,
 }: {
   initialInput: string;
   initialSplitDetails: SplitDetails;
+  initialSplitNotes: string | null;
 }) {
   const [splitDetails, setSplitDetails] =
     React.useState<SplitDetails>(initialSplitDetails);
@@ -221,6 +233,8 @@ function SplitDetailsDisplay({
     <div className="flex flex-col gap-2">
       <p className="font-bold">Initial input</p>
       <p>{initialInput}</p>
+
+      {initialSplitNotes !== null && <p>Note: {initialSplitNotes}</p>}
 
       <br />
 

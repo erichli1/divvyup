@@ -16,14 +16,18 @@ export const EMPTY_SPLIT_DETAILS: SplitDetails = {
 };
 
 // TODO: remove any names in subarrays that aren't in the main names array
-export function convertJsonIntoSplitDetails(input: string): SplitDetails {
-  if (input === "") return EMPTY_SPLIT_DETAILS;
+export function convertJsonIntoSplitDetails(input: string): {
+  note?: string;
+  output: SplitDetails;
+} {
+  if (input === "" || input === "{}")
+    return { note: "Unable to parse given text.", output: EMPTY_SPLIT_DETAILS };
 
   const json: { [key: string]: any } = JSON.parse(input);
 
   const total = json["total"];
-  const names = json["names"] as Array<string>;
-  const rawItems = json["items"] as Array<{ [key: string]: any }>;
+  const names = (json["names"] as Array<string>) ?? [];
+  const rawItems = (json["items"] as Array<{ [key: string]: any }>) ?? [];
 
   const items: Array<Item> = rawItems.map((rawItem) => {
     const itemCost = rawItem["cost"];
@@ -32,16 +36,18 @@ export function convertJsonIntoSplitDetails(input: string): SplitDetails {
     const namesInItem = rawItem["names"] as Array<string>;
 
     return {
-      cost: itemCost !== undefined ? parseInt(itemCost) : undefined,
+      cost: itemCost !== undefined ? parseFloat(itemCost) : undefined,
       itemName: itemName,
       names: namesInItem,
     };
   });
 
   return {
-    total: total !== undefined ? parseInt(total) : undefined,
-    names: names,
-    items: items,
+    output: {
+      total: total !== undefined ? parseFloat(total) : undefined,
+      names: names,
+      items: items,
+    },
   };
 }
 
