@@ -109,14 +109,21 @@ function InitialEntry({
           disabled={loading}
           onClick={() => {
             setLoading(true);
-            processInputInfo({ input: initialInput })
-              .then((res) => {
-                setSplitDetails(convertJsonIntoSplitDetails(res));
-              })
-              .catch(console.error);
+
+            if (initialInput !== "")
+              processInputInfo({ input: initialInput })
+                .then((res) => {
+                  setSplitDetails(convertJsonIntoSplitDetails(res));
+                })
+                .catch(console.error);
+            else
+              setSplitDetails({
+                names: [],
+                items: [],
+              });
           }}
         >
-          Process!
+          {initialInput === "" ? "Manual input" : "Process inputs"}
         </Button>
       </div>
     </div>

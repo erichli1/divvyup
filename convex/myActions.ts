@@ -33,6 +33,6 @@ export const processInputInfo = action({
       model: "gpt-4-turbo",
     });
 
-    return messageContent;
+    return messageContent === "unclear" ? "" : messageContent;
   },
 });
