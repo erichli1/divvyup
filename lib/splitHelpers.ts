@@ -1,3 +1,53 @@
+import { v4 as uuidv4 } from "uuid";
+import { notNullOrUndefined } from "./utils";
+
+export type ProcessedSplitDetails = {
+  total?: number;
+  names: Array<{ name: string; id: string }>;
+  items: Array<ProcessedItem>;
+};
+
+export const EMPTY_PROCESSED_SPLIT_DETAILS: ProcessedSplitDetails = {
+  names: [],
+  items: [],
+};
+
+export function convertInitialSplitToProcessed(
+  initial: SplitDetails
+): ProcessedSplitDetails {
+  const total = initial.total;
+  const names = initial.names.map((name) => ({
+    name: name,
+    id: uuidv4(),
+  }));
+
+  const items = initial.items.map((item) => {
+    const id = uuidv4();
+    const cost = item.cost ?? 0;
+    const itemName = item.itemName ?? "";
+    const nameIdsMaybeNull = item.names.map((name) => {
+      const nameObj = names.find((n) => n.name === name);
+
+      return nameObj !== undefined ? nameObj.id : null;
+    });
+
+    const nameIds = nameIdsMaybeNull.filter(notNullOrUndefined);
+
+    return {
+      id,
+      cost,
+      itemName,
+      nameIds,
+    };
+  });
+
+  return {
+    total,
+    names,
+    items,
+  };
+}
+
 export type SplitDetails = {
   total?: number;
   names: Array<string>;
@@ -8,6 +58,13 @@ export type SplitDetailsWithIds = {
   total?: number;
   names: Array<string>;
   items: Array<Item & { id: string }>;
+};
+
+export type ProcessedItem = {
+  id: string;
+  cost: number;
+  itemName: string;
+  nameIds: Array<string>;
 };
 
 export type Item = {
@@ -58,7 +115,7 @@ export function convertJsonIntoSplitDetails(input: string): {
 }
 
 // Returns dictionary of each person's bill, split by proportion of subtotal paid
-export function calculateSplit(splitDetails: SplitDetails): {
+export function calculateSplit(splitDetails: ProcessedSplitDetails): {
   error?: string;
   output?: { [key: string]: number };
   outputStats?: {
@@ -77,6 +134,12 @@ export function calculateSplit(splitDetails: SplitDetails): {
   }
 
   const names = splitDetails.names;
+
+  const namesOnlyStr = names.map((name) => name.name);
+  if (namesOnlyStr.length !== new Set(namesOnlyStr).size)
+    return {
+      error: "Duplicate names found in the list of names",
+    };
   const items = splitDetails.items;
 
   const subtotal = items.reduce((acc, item) => {
@@ -94,7 +157,7 @@ export function calculateSplit(splitDetails: SplitDetails): {
     };
 
   const subtotalsPerPerson = names.reduce((acc, name) => {
-    acc[name] = 0;
+    acc[name.name] = 0;
     return acc;
   }, {} as { [key: string]: number });
 
@@ -102,13 +165,14 @@ export function calculateSplit(splitDetails: SplitDetails): {
     // Should never fallback to 0 because we already throw error earlier
     const itemCost = item.cost ?? 0;
 
-    if (itemCost > 0 && item.names.length == 0)
+    if (itemCost > 0 && item.nameIds.length == 0)
       errorMessage = "At least one item has a cost not assigned to somebody";
 
-    const perPersonUnitCost = itemCost / item.names.length;
+    const perPersonUnitCost = itemCost / item.nameIds.length;
 
-    item.names.forEach((name) => {
-      subtotalsPerPerson[name] += perPersonUnitCost;
+    item.nameIds.forEach((nameId) => {
+      const name = names.find((n) => n.id === nameId)?.name;
+      if (name) subtotalsPerPerson[name] += perPersonUnitCost;
     });
   });
 
@@ -118,7 +182,7 @@ export function calculateSplit(splitDetails: SplitDetails): {
     };
 
   const split = names.reduce((acc, name) => {
-    acc[name] = (subtotalsPerPerson[name] / subtotal) * total;
+    acc[name.name] = (subtotalsPerPerson[name.name] / subtotal) * total;
     return acc;
   }, {} as { [key: string]: number });
 

@@ -6,9 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import React from "react";
 import {
   EMPTY_SPLIT_DETAILS,
+  ProcessedSplitDetails,
   SplitDetails,
-  SplitDetailsWithIds,
   calculateSplit,
+  convertInitialSplitToProcessed,
   convertJsonIntoSplitDetails,
 } from "@/lib/splitHelpers";
 import { Input } from "@/components/ui/input";
@@ -182,46 +183,51 @@ function SplitDetailsDisplay({
   initialSplitDetails: SplitDetails;
   initialSplitNotes: string | null;
 }) {
-  const processedInitialSplitDetails = {
-    ...initialSplitDetails,
-    items: initialSplitDetails.items.map((item) => ({
-      ...item,
-      itemName: item.itemName ?? "",
-      cost: item.cost ?? 0,
-      id: uuidv4(),
-    })),
-  };
+  // const processedInitialSplitDetails = {
+  //   ...initialSplitDetails,
+  //   items: initialSplitDetails.items.map((item) => ({
+  //     ...item,
+  //     itemName: item.itemName ?? "",
+  //     cost: item.cost ?? 0,
+  //     id: uuidv4(),
+  //   })),
+  // };
 
-  const [splitDetails, setSplitDetails] = React.useState<SplitDetailsWithIds>(
-    processedInitialSplitDetails
+  // const [splitDetails, setSplitDetails] = React.useState<SplitDetailsWithIds>(
+  //   processedInitialSplitDetails
+  // );
+
+  const [splitDetails, setSplitDetails] = React.useState<ProcessedSplitDetails>(
+    convertInitialSplitToProcessed(initialSplitDetails)
   );
 
   const addName = () => {
     setSplitDetails((old) => ({
       ...old,
-      names: [...old.names, `person-${old.names.length + 1}`],
+      names: [
+        ...old.names,
+        { name: `person-${old.names.length + 1}`, id: uuidv4() },
+      ],
     }));
   };
 
-  const deleteName = (name: string) => {
+  const deleteName = (nameId: string) => {
     setSplitDetails((old) => ({
       ...old,
-      names: old.names.filter((n) => n !== name),
+      names: old.names.filter((n) => n.id !== nameId),
       items: old.items.map((item) => ({
         ...item,
-        names: item.names.filter((n) => n !== name),
+        names: item.nameIds.filter((id) => id !== nameId),
       })),
     }));
   };
 
-  const editName = (newName: string, oldName: string) => {
+  const editName = (newName: string, nameId: string) => {
     setSplitDetails((old) => ({
       ...old,
-      names: old.names.map((name) => (name === oldName ? newName : name)),
-      items: old.items.map((item) => ({
-        ...item,
-        names: item.names.map((name) => (name === oldName ? newName : name)),
-      })),
+      names: old.names.map((name) =>
+        name.id === nameId ? { ...name, name: newName } : name
+      ),
     }));
   };
 
@@ -234,23 +240,23 @@ function SplitDetailsDisplay({
           id: uuidv4(),
           cost: 0,
           itemName: "",
-          names: [],
+          nameIds: [],
         },
       ],
     }));
   };
 
-  const editInclusionOnItem = (itemId: string, name: string) => {
+  const editInclusionOnItem = (itemId: string, nameId: string) => {
     setSplitDetails((old) => ({
       ...old,
       items: old.items.map((item) => ({
         ...item,
-        names:
+        nameIds:
           item.id === itemId
-            ? item.names.includes(name)
-              ? item.names.filter((n) => n !== name)
-              : [...item.names, name]
-            : item.names,
+            ? item.nameIds.includes(nameId)
+              ? item.nameIds.filter((id) => id !== nameId)
+              : [...item.nameIds, nameId]
+            : item.nameIds,
       })),
     }));
   };
@@ -323,13 +329,13 @@ function SplitDetailsDisplay({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => deleteName(name)}
+                onClick={() => deleteName(name.id)}
               >
                 <Trash className="h-4 w-4" />
               </Button>
               <Input
-                value={name}
-                onChange={(event) => editName(event.target.value, name)}
+                value={name.name}
+                onChange={(event) => editName(event.target.value, name.id)}
               />
             </div>
           ))}
@@ -368,11 +374,11 @@ function SplitDetailsDisplay({
                 className="flex items-center space-x-2"
               >
                 <Checkbox
-                  checked={item.names.includes(name)}
-                  onClick={() => editInclusionOnItem(item.id, name)}
+                  checked={item.nameIds.includes(name.id)}
+                  onClick={() => editInclusionOnItem(item.id, name.id)}
                 />
                 <label className="text-sm font-medium leading-none">
-                  {name}
+                  {name.name}
                 </label>
               </div>
             ))}
@@ -396,7 +402,11 @@ function SplitDetailsDisplay({
   );
 }
 
-function CalculatedSplit({ splitDetails }: { splitDetails: SplitDetails }) {
+function CalculatedSplit({
+  splitDetails,
+}: {
+  splitDetails: ProcessedSplitDetails;
+}) {
   const calculatedSplit = calculateSplit(splitDetails);
 
   if (calculatedSplit.error)
