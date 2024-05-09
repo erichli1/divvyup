@@ -134,7 +134,7 @@ function InitialEntry({
         onChange={(event) => onInitialInputChange(event.target.value)}
         placeholder="Start talking or typing into here to begin!"
         disabled={loading}
-        rows={10}
+        autoSize
       />
       <div className="flex flex-row justify-end">
         <Button
