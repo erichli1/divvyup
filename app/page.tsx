@@ -24,12 +24,13 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { api } from "@/convex/_generated/api";
 import { Separator } from "@/components/ui/separator";
-import { cn, displayAsCurrency } from "@/lib/utils";
+import { cn, displayAsCurrency, displayAsPercentage } from "@/lib/utils";
 import { v4 as uuidv4 } from "uuid";
 import { Alert } from "@/components/ui/alert";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -442,26 +443,39 @@ function CalculatedSplit({
       <br />
 
       <p className="font-bold">Math</p>
-      {calculatedSplit.mathTable && (
+      {calculatedSplit.math && (
         <Table>
+          <TableCaption>
+            Split totals may be off by a few cents due to rounding.
+          </TableCaption>
           <TableHeader>
             <TableRow>
-              {calculatedSplit.mathTable[0].map((elem, elemIndex) => (
+              {calculatedSplit.math.header.map((elem, elemIndex) => (
                 <TableHead key={`table-head-${elemIndex}`}>{elem}</TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {calculatedSplit.mathTable.slice(1).map((row, rowIndex) => (
+            {calculatedSplit.math.table.map((row, rowIndex) => (
               <TableRow
                 key={`table-row-${rowIndex}`}
                 className={
-                  row[0] === "Split" || row[0] === "Subtotal" ? "font-bold" : ""
+                  row.name === "Split" || row.name === "Subtotal"
+                    ? "font-bold"
+                    : ""
                 }
               >
-                {row.map((elem, elemIndex) => (
+                <TableCell>{row.name}</TableCell>
+                <TableCell>
+                  {row.type === "currency"
+                    ? displayAsCurrency(row.total)
+                    : displayAsPercentage(row.total)}
+                </TableCell>
+                {row.values.map((elem, elemIndex) => (
                   <TableCell key={`table-row-${rowIndex}-elem-${elemIndex}`}>
-                    {elem}
+                    {row.type === "currency"
+                      ? displayAsCurrency(elem)
+                      : displayAsPercentage(elem)}
                   </TableCell>
                 ))}
               </TableRow>

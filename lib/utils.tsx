@@ -44,3 +44,7 @@ export function displayAsCurrency(input: number): string {
 export function displayAsPercentage(input: number): string {
   return `${Math.round(input * 100)}%`;
 }
+
+export function round(input: number, decimals: number): number {
+  return Math.round(input * 10 ** decimals) / 10 ** decimals;
+}
