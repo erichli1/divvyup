@@ -155,7 +155,7 @@ function InitialEntry({
           }}
           className={cn(
             status === "typed"
-              ? "bg-gradient-to-r from-blue-500 via-blue-500 to-indigo-500"
+              ? "bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"
               : "",
             status === "loading" ? "" : "transition-all hover:scale-110"
           )}
@@ -329,7 +329,10 @@ function SplitDetailsDisplay({
 
       <p className="font-bold">People</p>
       <div className="flex flex-row">
-        <Button onClick={() => addName()}>
+        <Button
+          onClick={() => addName()}
+          className="transition-all hover:scale-105"
+        >
           <UserRoundPlus className="h-4 w-4" />
         </Button>
         <div className="ml-2 flex-grow grid grid-cols-2 gap-2">
@@ -401,7 +404,10 @@ function SplitDetailsDisplay({
         </div>
       ))}
       <div>
-        <Button onClick={() => addItem()}>
+        <Button
+          onClick={() => addItem()}
+          className="transition-all hover:scale-105"
+        >
           <FilePlus2 className="h-4 w-4 mr-2" />
           Add item
         </Button>
