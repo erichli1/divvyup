@@ -1,5 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
-import { notNullOrUndefined } from "./utils";
+import {
+  displayAsCurrency,
+  displayAsPercentage,
+  notNullOrUndefined,
+} from "./utils";
 
 export type ProcessedSplitDetails = {
   total?: number;
@@ -117,92 +121,104 @@ export function convertJsonIntoSplitDetails(input: string): {
 // Returns dictionary of each person's bill, split by proportion of subtotal paid
 export function calculateSplit(splitDetails: ProcessedSplitDetails): {
   error?: string;
-  output?: { [key: string]: number };
   warning?: string;
-  outputStats?: {
-    sum: number;
-    subtotal: number;
-  };
+  output?: { [key: string]: number };
+  mathTable?: Array<Array<string>>;
 } {
-  let errorMessage = "";
-
+  // Retrieve the total
   const total = splitDetails.total;
-  if (total === undefined || isNaN(total)) {
-    errorMessage = "No total cost provided";
-    return {
-      error: errorMessage,
-    };
-  }
+  if (total === undefined || isNaN(total))
+    return errorObj("No total cost provided");
 
+  // Retrieve the names
   const names = splitDetails.names;
-
   const namesOnlyStr = names.map((name) => name.name);
   if (namesOnlyStr.length !== new Set(namesOnlyStr).size)
-    return {
-      error: "Duplicate names found in the list of names",
-    };
+    return errorObj("Duplicate names found in the list of names");
+
+  // Create the math
+  let mathTable = [["", "Total", ...names.map((name) => name.name)]];
+
+  // Retrieve the items
   const items = splitDetails.items;
 
-  const subtotal = items.reduce((acc, item) => {
+  // Calculate the subtotal from each item
+  let errorMessage = "";
+  const subtotal: number = items.reduce((acc, item) => {
     if (item.cost === undefined) {
       errorMessage = "No cost provided for an item";
       return 0;
     }
-
     return acc + item.cost;
   }, 0);
+  if (errorMessage !== "") return errorObj(errorMessage);
+  if (subtotal > total) return errorObj("Subtotal is greater than total cost.");
 
-  if (errorMessage !== "")
-    return {
-      error: errorMessage,
-    };
-
-  if (subtotal > total)
-    return { error: "Subtotal is greater than total cost." };
-
+  // Initialize subtotals dictionary
   const subtotalsPerPerson = names.reduce((acc, name) => {
     acc[name.name] = 0;
     return acc;
   }, {} as { [key: string]: number });
 
-  items.forEach((item) => {
-    // Should never fallback to 0 because we already throw error earlier
-    const itemCost = item.cost ?? 0;
+  // Iterate through each item
+  items.forEach((item, itemIndex) => {
+    const itemInTable = [
+      item.itemName !== "" ? item.itemName : `item-${itemIndex + 1}`,
+    ];
 
+    const itemCost = item.cost ?? 0; // will never fallback to 0, bc we break earlier if so
+    itemInTable.push(displayAsCurrency(itemCost));
     if (isNaN(itemCost) && item.nameIds.length > 0)
       errorMessage = "At least one item cost is not set";
-
     if (itemCost > 0 && item.nameIds.length === 0)
       errorMessage = "At least one item has a cost not assigned to somebody";
 
     const perPersonUnitCost = itemCost / item.nameIds.length;
-
-    item.nameIds.forEach((nameId) => {
-      const name = names.find((n) => n.id === nameId)?.name;
-      if (name) subtotalsPerPerson[name] += perPersonUnitCost;
+    names.forEach((name) => {
+      if (!item.nameIds.includes(name.id)) itemInTable.push("");
+      else {
+        subtotalsPerPerson[name.name] += perPersonUnitCost;
+        itemInTable.push(displayAsCurrency(perPersonUnitCost));
+      }
     });
-  });
 
-  if (errorMessage !== "")
-    return {
-      error: errorMessage,
-    };
+    mathTable.push(itemInTable);
+  });
+  if (errorMessage !== "") return errorObj(errorMessage);
+
+  // Add subtotal to math table
+  mathTable.push([
+    "Subtotal",
+    displayAsCurrency(subtotal),
+    ...names.map((name) =>
+      displayAsCurrency(subtotalsPerPerson[name.name] ?? 0)
+    ),
+  ]);
+
+  // Post-processing given subtotal
+  const proportionInTable = ["Proportion", "100%"];
+  const feesInTable = ["Fees", displayAsCurrency(total - subtotal)];
+  const splitInTable = ["Split", displayAsCurrency(total)];
 
   const split = names.reduce((acc, name) => {
-    acc[name.name] = (subtotalsPerPerson[name.name] / subtotal) * total;
+    const proportion = subtotalsPerPerson[name.name] / subtotal;
+    proportionInTable.push(displayAsPercentage(proportion));
+    feesInTable.push(displayAsCurrency(proportion * (total - subtotal)));
+    splitInTable.push(displayAsCurrency(proportion * total));
+
+    acc[name.name] = proportion * total;
     return acc;
   }, {} as { [key: string]: number });
-
-  const sum = Object.entries(split).reduce(
-    (acc, [_key, value]) => acc + value,
-    0
-  );
+  mathTable = mathTable.concat([proportionInTable, feesInTable, splitInTable]);
 
   return {
     output: split,
-    outputStats: {
-      sum,
-      subtotal,
-    },
+    mathTable,
+  };
+}
+
+function errorObj(message: string) {
+  return {
+    error: message,
   };
 }

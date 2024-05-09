@@ -40,3 +40,7 @@ export function displayAsCurrency(input: number): string {
     currency: "USD",
   });
 }
+
+export function displayAsPercentage(input: number): string {
+  return `${Math.round(input * 100)}%`;
+}

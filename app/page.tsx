@@ -27,6 +27,14 @@ import { Separator } from "@/components/ui/separator";
 import { cn, displayAsCurrency } from "@/lib/utils";
 import { v4 as uuidv4 } from "uuid";
 import { Alert } from "@/components/ui/alert";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function Home() {
   return (
@@ -431,20 +439,35 @@ function CalculatedSplit({
           ))}
       </div>
 
-      {calculatedSplit.outputStats && (
-        <>
-          <p className="font-bold">Checks</p>
-          <div>
-            <p>
-              Subtotal:{" "}
-              {displayAsCurrency(calculatedSplit.outputStats.subtotal)}
-            </p>
-            <p>
-              Sum: {displayAsCurrency(calculatedSplit.outputStats.sum)} (should
-              be {displayAsCurrency(splitDetails.total ?? NaN)})
-            </p>
-          </div>
-        </>
+      <br />
+
+      <p className="font-bold">Math</p>
+      {calculatedSplit.mathTable && (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {calculatedSplit.mathTable[0].map((elem, elemIndex) => (
+                <TableHead key={`table-head-${elemIndex}`}>{elem}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {calculatedSplit.mathTable.slice(1).map((row, rowIndex) => (
+              <TableRow
+                key={`table-row-${rowIndex}`}
+                className={
+                  row[0] === "Split" || row[0] === "Subtotal" ? "font-bold" : ""
+                }
+              >
+                {row.map((elem, elemIndex) => (
+                  <TableCell key={`table-row-${rowIndex}-elem-${elemIndex}`}>
+                    {elem}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       )}
     </>
   );
