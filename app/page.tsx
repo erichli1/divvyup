@@ -479,7 +479,9 @@ function CalculatedSplit({
                 </TableCell>
                 {row.values.map((elem, elemIndex) => (
                   <TableCell key={`table-row-${rowIndex}-elem-${elemIndex}`}>
-                    {row.type === "currency"
+                    {row.hideIfZero && elem === 0
+                      ? ""
+                      : row.type === "currency"
                       ? displayAsCurrency(elem)
                       : displayAsPercentage(elem)}
                   </TableCell>

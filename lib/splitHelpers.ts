@@ -119,6 +119,7 @@ type MathRow = {
   total: number;
   type: "percentage" | "currency";
   values: Array<number>;
+  hideIfZero?: boolean;
 };
 
 // Returns dictionary of each person's bill, split by proportion of subtotal paid
@@ -162,6 +163,7 @@ export function calculateSplit(splitDetails: ProcessedSplitDetails): {
       total: itemCost,
       type: "currency",
       values: names.map(() => 0),
+      hideIfZero: true,
     };
 
     if (isNaN(itemCost) && item.nameIds.length > 0)
