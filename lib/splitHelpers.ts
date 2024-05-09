@@ -169,7 +169,10 @@ export function calculateSplit(splitDetails: ProcessedSplitDetails): {
     // Should never fallback to 0 because we already throw error earlier
     const itemCost = item.cost ?? 0;
 
-    if (itemCost > 0 && item.nameIds.length == 0)
+    if (isNaN(itemCost) && item.nameIds.length > 0)
+      errorMessage = "At least one item cost is not set";
+
+    if (itemCost > 0 && item.nameIds.length === 0)
       errorMessage = "At least one item has a cost not assigned to somebody";
 
     const perPersonUnitCost = itemCost / item.nameIds.length;
