@@ -118,6 +118,7 @@ export function convertJsonIntoSplitDetails(input: string): {
 export function calculateSplit(splitDetails: ProcessedSplitDetails): {
   error?: string;
   output?: { [key: string]: number };
+  warning?: string;
   outputStats?: {
     sum: number;
     subtotal: number;
@@ -126,7 +127,7 @@ export function calculateSplit(splitDetails: ProcessedSplitDetails): {
   let errorMessage = "";
 
   const total = splitDetails.total;
-  if (total === undefined) {
+  if (total === undefined || isNaN(total)) {
     errorMessage = "No total cost provided";
     return {
       error: errorMessage,
@@ -155,6 +156,9 @@ export function calculateSplit(splitDetails: ProcessedSplitDetails): {
     return {
       error: errorMessage,
     };
+
+  if (subtotal > total)
+    return { error: "Subtotal is greater than total cost." };
 
   const subtotalsPerPerson = names.reduce((acc, name) => {
     acc[name.name] = 0;

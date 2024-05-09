@@ -24,8 +24,9 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { api } from "@/convex/_generated/api";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
+import { cn, displayAsCurrency } from "@/lib/utils";
 import { v4 as uuidv4 } from "uuid";
+import { Alert } from "@/components/ui/alert";
 
 export default function Home() {
   return (
@@ -124,6 +125,7 @@ function InitialEntry({
         onChange={(event) => onInitialInputChange(event.target.value)}
         placeholder="Start talking or typing into here to begin!"
         disabled={loading}
+        rows={10}
       />
       <div className="flex flex-row justify-end">
         <Button
@@ -145,7 +147,8 @@ function InitialEntry({
           className={cn(
             status === "typed"
               ? "bg-gradient-to-r from-blue-500 via-blue-500 to-indigo-500"
-              : ""
+              : "",
+            status === "loading" ? "" : "transition-all hover:scale-110"
           )}
         >
           {status === "loading" && (
@@ -410,7 +413,11 @@ function CalculatedSplit({
   const calculatedSplit = calculateSplit(splitDetails);
 
   if (calculatedSplit.error)
-    return <p className="font-bold">{calculatedSplit.error}</p>;
+    return (
+      <Alert variant="destructive">
+        <p className="font-bold">{calculatedSplit.error}</p>
+      </Alert>
+    );
 
   return (
     <>
@@ -419,7 +426,7 @@ function CalculatedSplit({
         {calculatedSplit.output &&
           Object.entries(calculatedSplit.output).map(([name, cost]) => (
             <p key={`split-${name}`}>
-              {name}: {cost}
+              {name}: {displayAsCurrency(cost)}
             </p>
           ))}
       </div>
@@ -428,8 +435,14 @@ function CalculatedSplit({
         <>
           <p className="font-bold">Checks</p>
           <div>
-            <p>Subtotal: {calculatedSplit.outputStats.subtotal}</p>
-            <p>Sum: {calculatedSplit.outputStats.sum}</p>
+            <p>
+              Subtotal:{" "}
+              {displayAsCurrency(calculatedSplit.outputStats.subtotal)}
+            </p>
+            <p>
+              Sum: {displayAsCurrency(calculatedSplit.outputStats.sum)} (should
+              be {displayAsCurrency(splitDetails.total ?? NaN)})
+            </p>
           </div>
         </>
       )}

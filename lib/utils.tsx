@@ -33,3 +33,10 @@ export function notNullOrUndefined<TValue>(
 ): value is TValue {
   return value !== null && value !== undefined;
 }
+
+export function displayAsCurrency(input: number): string {
+  return input.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+  });
+}
