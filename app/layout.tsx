@@ -7,7 +7,7 @@ import Script from "next/script";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "billsplit",
+  title: "divvy up",
   description: "Split complex bills in seconds",
 };
 

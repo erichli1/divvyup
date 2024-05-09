@@ -40,16 +40,8 @@ import {
 export default function Home() {
   return (
     <>
-      {/* <StickyHeader className="px-4 py-2">
-        <div className="flex justify-between items-center">
-          billsplit (v3)
-          <SignInButtonContainer />
-        </div>
-      </StickyHeader> */}
       <main className="mx-auto p-2 max-w-2xl flex flex-col gap-8">
-        <h1 className="text-4xl font-extrabold my-8 text-center">
-          billsplit (v3)
-        </h1>
+        <h1 className="text-4xl font-extrabold my-8 text-center">divvy up</h1>
         <Authenticated>
           <SignedInContent />
         </Authenticated>
