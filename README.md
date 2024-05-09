@@ -1,21 +1,15 @@
-# Convex + TypeScript + Next.js + Clerk + Tailwind + shadcn/ui
+## TLDR
 
-This template provides a minimal setup to get Convex working with [Next.js](https://nextjs.org/). It uses [Clerk](https://clerk.dev/) for user authentication.
+Natural language bill splitting by proportion of subtotal paid.
 
-Start by editing `convex/myFunctions.ts` and interact with your Next.js app.
+## Problem
 
-See Convex docs at https://docs.convex.dev/home
+Existing bill splitting apps require users to split directly on the total, but tax and tip should be divded proportional to the amount of subtotal paid. Especially on large trips, splitting the bill when some order drinks or want the steaks requires intensive accounting.
 
-## Setting up
+## Solution
 
-```
-npm create convex@latest -t nextjs-clerk-shadcn
-```
+This billsplitting app turns natural language input into a split bill and shows you the math to prove it. It processes inputs using Llama 3 70B on Groq and then gives you the option to review and edit the identified split. It splits the total cost by the proportion of the subtotal a user paid so that tax and tip are distribued proportionally.
 
-Then:
+## Setup
 
-1. Follow steps 1 to 3 in the [Clerk onboarding guide](https://docs.convex.dev/auth/clerk#get-started)
-2. Paste the Issuer URL as `CLERK_JWT_ISSUER_DOMAIN` to your dev deployment environment variable settings on the Convex dashboard (see [docs](https://docs.convex.dev/auth/clerk#configuring-dev-and-prod-instances))
-3. Paste your publishable key as `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="<your publishable key>"` to the `.env.local` file in this directory.
-
-If you want to sync Clerk user data via webhooks, check out this [example repo](https://github.com/thomasballinger/convex-clerk-users-table/).
+`npm i` installs the necessary packages and `npm run dev` runs the app locally. Note this project is built on top of [Convex](https://www.convex.dev/) and running locally or deploying it would require an account there.
