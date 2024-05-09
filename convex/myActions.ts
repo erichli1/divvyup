@@ -1,13 +1,15 @@
 "use node";
 
-import OpenAI from "openai";
+// import OpenAI from "openai";
+import Groq from "groq-sdk";
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { v } from "convex/values";
 import { LLM_PROMPT } from "./convexUtils";
 
-const apiKey = process.env.OPENAI_API_KEY!;
-const openai = new OpenAI({ apiKey });
+// const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY! });
+const MODEL_NAME = "llama3-70b-8192";
 
 export const processInputInfo = action({
   args: {
@@ -15,8 +17,8 @@ export const processInputInfo = action({
   },
   handler: async (ctx, { input }) => {
     const start = Date.now();
-    const response = await openai.chat.completions.create({
-      model: "gpt-4-turbo",
+    const response = await groq.chat.completions.create({
+      model: MODEL_NAME,
       messages: [
         { role: "system", content: LLM_PROMPT },
         { role: "user", content: input },
@@ -31,7 +33,7 @@ export const processInputInfo = action({
       input,
       output: messageContent,
       latency: end - start,
-      model: "gpt-4-turbo",
+      model: MODEL_NAME,
     });
 
     return messageContent;

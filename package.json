@@ -54,6 +54,7 @@
     "date-fns": "^2.30.0",
     "eslint": "8.49.0",
     "eslint-config-next": "^14.1.4",
+    "groq-sdk": "^0.3.3",
     "jabber": "^1.5.3",
     "lucide-react": "^0.378.0",
     "next": "^14.1.4",

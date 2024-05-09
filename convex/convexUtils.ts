@@ -30,4 +30,10 @@ OUTPUT:
 INPUT:
 hey there friends, what's going on!
 OUTPUT:
-{}`;
+{}
+
+< EXAMPLE 5 >
+INPUT:
+person 1 got the ball for $10. person 3 got super free for $6. person 2 got the $5. total was 55
+OUTPUT:
+{ "names": ["person 1", "person 3", "person 2"], "total": 55, "items": [ { "cost": 10, "names": ["person 1"] }, { "itemName": "super free", "cost": 6, "names": ["person 3"] }, { "cost": 5, "names": ["person 2"] } ] }`;
