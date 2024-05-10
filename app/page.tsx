@@ -121,6 +121,28 @@ function InitialEntry({
 
   return (
     <div className="flex flex-col gap-2">
+      <p className="text-sm">
+        Just say the total and who split what! (and you can always edit if you
+        miss something)
+      </p>
+
+      <p className="text-sm italic ml-4">
+        the total was 80, kelsey and eric split 15, derek got a steak for 25,
+        and eric got a drink for 8
+      </p>
+
+      <p className="text-sm italic ml-4">
+        raji and taia split 35, connie got sushi for 14, calvin ordered $10, and
+        everybody split the fries for 12
+      </p>
+
+      <p className="text-sm italic ml-4">
+        kevin, ivan, grace, and sharon ate together. everybody split $100 and
+        kevin got a drink for 5. the total was 120
+      </p>
+
+      <br />
+
       <Textarea
         value={initialInput}
         onChange={(event) => onInitialInputChange(event.target.value)}
