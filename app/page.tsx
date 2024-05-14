@@ -20,6 +20,7 @@ import {
   Trash,
   UserRoundPlus,
   WandSparkles,
+  Zap,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { api } from "@/convex/_generated/api";
@@ -105,6 +106,97 @@ function SplitContainer() {
   );
 }
 
+const NAMES = [
+  "Liam",
+  "Olivia",
+  "Noah",
+  "Emma",
+  "Oliver",
+  "Charlotte",
+  "James",
+  "Amelia",
+  "Elijah",
+  "Sophia",
+  "Mateo",
+  "Mia",
+  "Theodore",
+  "Isabella",
+  "Henry",
+  "Ava",
+  "Lucas",
+  "Evelyn",
+  "William",
+  "Luna",
+];
+
+const ITEMS = [
+  "pizza",
+  "burger",
+  "sushi",
+  "pasta",
+  "tacos",
+  "steak",
+  "ramen",
+  "curry",
+  "paella",
+  "falafel",
+  "dumplings",
+  "barbecue",
+  "fish and chips",
+  "lasagna",
+  "chocolate",
+  "ice cream",
+  "chicken wings",
+  "donuts",
+  "crepes",
+  "poutine",
+];
+
+function getRandomItems<T>(arr: T[], n: number): T[] {
+  return [...arr].sort(() => 0.5 - Math.random()).slice(0, n);
+}
+
+function generateExample(): string {
+  const outputArr: Array<string> = [];
+
+  const totalNumPeople = Math.floor(Math.random() * 3) + 2; // 2-4 people
+  const totalNumItems = Math.floor(Math.random() * 3) + 2; // 2-4 items
+
+  const people = getRandomItems(NAMES, totalNumPeople);
+  const items = getRandomItems(ITEMS, totalNumItems);
+  const itemsSomeNull = items.map((item) =>
+    Math.random() > 0.5 ? item : null
+  );
+
+  let subtotal = 0;
+
+  itemsSomeNull.forEach((item) => {
+    const price = Math.floor(Math.random() * 20) + 5; // 5-25
+    subtotal += price;
+
+    const peopleInvolved = getRandomItems(
+      people,
+      Math.floor(Math.random() * totalNumPeople) + 1
+    );
+
+    outputArr.push(
+      `${
+        peopleInvolved.length === people.length
+          ? "Everybody split"
+          : peopleInvolved.length > 1
+          ? peopleInvolved.join(", ") + " split"
+          : peopleInvolved[0] + " got"
+      } ${item === null ? price : item + " for " + price}`
+    );
+  });
+
+  const total = `The total was ${(Math.random() * subtotal + subtotal).toFixed(
+    2
+  )}.`;
+
+  return `${total} ${outputArr.join(". ")}`;
+}
+
 function InitialEntry({
   initialInput,
   onInitialInputChange,
@@ -166,54 +258,66 @@ function InitialEntry({
         placeholder="Start talking or typing here..."
         disabled={loading}
         autoSize
-        className="shadow-md"
+        className="shadow-md min-h-[100px]"
       />
       <div className="flex flex-row justify-end">
-        <Button
-          disabled={loading}
-          onClick={() => {
-            setLoading(true);
+        <div className="flex flex-row gap-2">
+          <Button
+            variant="outline"
+            className="transition-all hover:scale-105 shadow-md hover:shadow-lg"
+            onClick={() => {
+              onInitialInputChange(generateExample());
+            }}
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            Try example
+          </Button>
+          <Button
+            disabled={loading}
+            onClick={() => {
+              setLoading(true);
 
-            if (initialInput !== "")
-              processInputInfo({ input: initialInput })
-                .then((res) => {
-                  const result = convertJsonIntoSplitDetails(res);
-                  if (result.note) setInitialSplitNotes(result.note);
+              if (initialInput !== "")
+                processInputInfo({ input: initialInput })
+                  .then((res) => {
+                    const result = convertJsonIntoSplitDetails(res);
+                    if (result.note) setInitialSplitNotes(result.note);
 
-                  setSplitDetails(result.output);
-                })
-                .catch(console.error);
-            else setSplitDetails(EMPTY_SPLIT_DETAILS);
-          }}
-          className={cn(
-            "transition-all shadow-md hover:shadow-lg",
-            status === "typed"
-              ? "bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"
-              : "",
-            status === "loading" ? "" : "hover:scale-110"
-          )}
-        >
-          {status === "loading" && (
-            <>
-              <div className="animate-spin mr-2">
-                <Loader2 className="h-4 w-4" />
-              </div>
-              Loading...
-            </>
-          )}
-          {status === "empty" && (
-            <>
-              <TextCursorInput className="h-4 w-4 mr-2" />
-              Manually divvy
-            </>
-          )}
-          {status === "typed" && (
-            <>
-              <WandSparkles className="h-4 w-4 mr-2" />
-              Auto divvy
-            </>
-          )}
-        </Button>
+                    setSplitDetails(result.output);
+                  })
+                  .catch(console.error);
+              else setSplitDetails(EMPTY_SPLIT_DETAILS);
+            }}
+            className={cn(
+              "transition-all shadow-md hover:shadow-lg",
+              status === "typed"
+                ? "bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"
+                : "",
+              status === "loading" ? "" : "hover:scale-105"
+            )}
+          >
+            {status === "loading" && (
+              <>
+                <div className="animate-spin mr-2">
+                  <Loader2 className="h-4 w-4" />
+                </div>
+                Loading...
+              </>
+            )}
+            {status === "empty" && (
+              <>
+                <TextCursorInput className="h-4 w-4 mr-2" />
+                Manually divvy
+              </>
+            )}
+            {status === "typed" && (
+              <>
+                <WandSparkles className="h-4 w-4 mr-2" />
+                Auto divvy
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
