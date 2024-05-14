@@ -36,6 +36,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { isMobile } from "react-device-detect";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -135,12 +137,36 @@ function InitialEntry({
 
       <br />
 
+      <p className="text-sm text-muted-foreground">
+        {isMobile ? (
+          <>Hit the microphone on your keyboard to start talking!</>
+        ) : (
+          <>
+            You can enable dictation on{" "}
+            <Link
+              href="https://support.apple.com/guide/mac-help/use-dictation-mh40584/mac"
+              className="underline"
+            >
+              MacOS
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="https://support.microsoft.com/en-us/windows/use-voice-typing-to-talk-instead-of-type-on-your-pc-fec94565-c4bd-329d-e59a-af033fa5689f"
+              className="underline"
+            >
+              Windows
+            </Link>
+            .
+          </>
+        )}
+      </p>
       <Textarea
         value={initialInput}
         onChange={(event) => onInitialInputChange(event.target.value)}
-        placeholder="Start talking or typing into here to begin!"
+        placeholder="Start talking or typing here..."
         disabled={loading}
         autoSize
+        className="shadow-md"
       />
       <div className="flex flex-row justify-end">
         <Button
@@ -160,10 +186,11 @@ function InitialEntry({
             else setSplitDetails(EMPTY_SPLIT_DETAILS);
           }}
           className={cn(
+            "transition-all shadow-md hover:shadow-lg",
             status === "typed"
               ? "bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500"
               : "",
-            status === "loading" ? "" : "transition-all hover:scale-110"
+            status === "loading" ? "" : "hover:scale-110"
           )}
         >
           {status === "loading" && (
@@ -177,13 +204,13 @@ function InitialEntry({
           {status === "empty" && (
             <>
               <TextCursorInput className="h-4 w-4 mr-2" />
-              Manual input
+              Manually divvy
             </>
           )}
           {status === "typed" && (
             <>
               <WandSparkles className="h-4 w-4 mr-2" />
-              Process!
+              Auto divvy
             </>
           )}
         </Button>
